@@ -1,25 +1,56 @@
-import { useLayoutEffect } from "react";
+import { useContext, useLayoutEffect } from "react";
 import { View, Text, Image, StyleSheet, ScrollView } from "react-native";
+import { useSelector, useDispatch } from "react-redux";
 
 import List from "../components/MealDetail/List";
 import Subtitle from "../components/MealDetail/Subtitle";
 import MealDetails from "../components/MealDetails";
 import { MEALS } from "../data/dummy-data";
+import { removeFavourite, addFavourite } from "../store/redux/favourites";
+// import { FavouritesContext } from "../store/context/favourites-context";
 
 function MealDetailScreen({ route, navigation }) {
+  // const favouriteMealsCtx = useContext(FavouritesContext);
+  const favouriteMealsIds = useSelector((state) => state.favouriteMeals.ids);
+  // we use this to get the value of the state i.e. state.storeReducerName.value
+  const dispatch = useDispatch();
+
   const mealId = route.params.mealId;
 
   const selectedMeal = MEALS.find((meal) => meal.id === mealId);
 
-  function headerButtonPressHandler() {
-    console.log("Pressed!");
+  const mealIsFavourite = favouriteMealsCtx.ids.includes(MealDetailScreen);
+
+  // REDUX
+  function changeFavouriteStatusHandler() {
+    if (mealIsFavourite) {
+      dispatch(removeFavourite({ id: mealId }));
+      // it accepts a payload, as specified in the slice
+    } else {
+      dispatch(addFavourite({ id: mealId }));
+    }
   }
+
+  // CONTEXT
+  // function changeFavouriteStatusHandler() {
+  //   if (mealIsFavourite) {
+  //     favouriteMealsCtx.removeFavourite(mealId);
+  //   } else {
+  //     favouriteMealsCtx.addFavourite(mealId);
+  //   }
+  // }
 
   useLayoutEffect(() => {
     // this runs while the page is being rendered i.e. after the DOM has been updated but before the browser has "painted" the page, a opposed to useEffect that waits till the page has been "painted" by the browser
     navigation.setOptions({
       headerRight: () => {
-        return <IconButton icon="star" color="white" onPress={headerButtonPressHandler} />;
+        return (
+          <IconButton
+            icon={mealIsFavourite ? "star" : "star-outline"}
+            color="white"
+            onPress={changeFavouriteStatusHandler}
+          />
+        );
       },
     });
   }, [navigation, headerButtonPressHandler]);
